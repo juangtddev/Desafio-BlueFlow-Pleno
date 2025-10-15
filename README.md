@@ -49,4 +49,7 @@ Entregar um sistema **simples, funcional e bem estruturado**, com **frontend** e
 - Documente decisões técnicas e trade-offs.
 - Foque no essencial: faça o feijão com arroz.
 
+## Atenção!
+Para entrega, faça um **FORK** desse repositório e mande um Pull Request do seu desafio até às 23:59:59h do dia 16 de outubro de 2025 no fuso horário de Brasília.
+
 Prove seu valor e boa sorte!
