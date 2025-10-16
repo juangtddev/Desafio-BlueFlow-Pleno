@@ -12,17 +12,41 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  frontend: {}
+  frontend:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
 
-  services/api-gateway: {}
+  services/api-gateway:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
 
-  services/auth-service: {}
+  services/auth-service:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
 
-  services/favorites-service: {}
+  services/favorites-service:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
 
-  services/videos-service: {}
+  services/videos-service:
+    dependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
 
 packages:
+
+  dotenv@17.2.3:
+    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
+    engines: {node: '>=12'}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -30,5 +54,7 @@ packages:
     hasBin: true
 
 snapshots:
+
+  dotenv@17.2.3: {}
 
   typescript@5.9.3: {}
