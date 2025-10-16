@@ -1,0 +1,11 @@
+# Dependências
+node_modules
+
+# Docker
+postgres_data
+
+# Arquivos de ambiente (vamos criar no futuro)
+.env
+
+# Arquivos de compilação do TypeScript
+dist

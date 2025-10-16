@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:14-alpine
+    container_name: blueflow_postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=blueflow_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: # Declara o volume que estamos usando acima.
