@@ -66,10 +66,19 @@ importers:
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
+      '@types/express':
+        specifier: ^5.0.3
+        version: 5.0.3
       prisma:
         specifier: ^6.17.1
         version: 6.17.1(typescript@5.9.3)
+      tsx:
+        specifier: ^4.20.6
+        version: 4.20.6
 
   services/videos-service:
     dependencies:
