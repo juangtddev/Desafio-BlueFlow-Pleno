@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import { prisma } from './lib/prisma';
-import { hashPassword } from './utils/hash';
+import { hashPassword, verifyPassword } from './utils/hash';
+import { generateToken } from './utils/jwt';
 
 const app = express();
 
@@ -39,6 +40,33 @@ app.post('/register', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: 'Email and password are required' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isPasswordValid = await verifyPassword(user.password, password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = generateToken(user.id);
+    return res.status(200).json({ token });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Auth service running on port ${PORT}`));
