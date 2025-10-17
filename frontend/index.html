@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlueFlow</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section id="auth-view">
+        <h1>BlueFlow</h1>
+
+        <div class="tab-nav">
+          <button class="tab-button active" data-form="login">Entrar</button>
+          <button class="tab-button" data-form="register">Registrar</button>
+        </div>
+
+        <div class="tab-content">
+          <form id="login-form" class="auth-form active">
+            <h2>Login</h2>
+            <input type="email" id="login-email" placeholder="Email" required />
+            <input
+              type="password"
+              id="login-password"
+              placeholder="Senha"
+              required
+            />
+            <button type="submit">Entrar</button>
+          </form>
+
+          <form id="register-form" class="auth-form">
+            <h2>Crie sua conta</h2>
+            <input
+              type="email"
+              id="register-email"
+              placeholder="Email"
+              required
+            />
+            <input
+              type="password"
+              id="register-password"
+              placeholder="Senha"
+              required
+            />
+            <button type="submit">Registrar</button>
+          </form>
+        </div>
+
+        <p id="auth-error" class="error-message hidden"></p>
+      </section>
+
+      <section id="main-view" class="hidden">
+        <header>
+          <h2>Vídeos</h2>
+          <form id="search-form">
+            <input
+              type="search"
+              id="search-input"
+              placeholder="Buscar vídeos..."
+            />
+            <button type="submit">Buscar</button>
+          </form>
+          <button id="logout-button">Sair</button>
+        </header>
+        <hr />
+        <div id="video-list">
+          <p>Carregando vídeos...</p>
+        </div>
+      </section>
+    </main>
+    <script src="app.js" defer></script>
+  </body>
+</html>
