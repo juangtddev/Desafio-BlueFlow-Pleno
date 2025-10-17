@@ -1,7 +1,7 @@
 import https from 'https';
 
 interface YouTubeVideo {
-  id: { videoId: string };
+  id: { videoId: string } | string;
   snippet: {
     title: string;
     description: string;
@@ -13,7 +13,10 @@ interface YouTubeVideo {
 
 export class YouTubeAdapter {
   private readonly apiKey: string;
-  private readonly baseUrl = 'https://www.googleapis.com/youtube/v3/search';
+  private readonly searchBaseUrl =
+    'https://www.googleapis.com/youtube/v3/search';
+  private readonly videosBaseUrl =
+    'https://www.googleapis.com/youtube/v3/videos';
 
   constructor() {
     if (!process.env.YOUTUBE_API_KEY) {
@@ -34,7 +37,44 @@ export class YouTubeAdapter {
         key: this.apiKey,
       });
 
-      const url = `${this.baseUrl}?${params.toString()}`;
+      const url = `${this.searchBaseUrl}?${params.toString()}`;
+
+      https
+        .get(url, (res) => {
+          let data = '';
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
+          res.on('end', () => {
+            try {
+              const parsedData = JSON.parse(data);
+              if (parsedData.error) {
+                return reject(new Error(parsedData.error.message));
+              }
+              resolve(parsedData.items as YouTubeVideo[]);
+            } catch (e) {
+              reject(e);
+            }
+          });
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
+  }
+
+  public listPopularVideos(): Promise<YouTubeVideo[]> {
+    return new Promise((resolve, reject) => {
+      const params = new URLSearchParams({
+        part: 'snippet',
+        chart: 'mostPopular',
+        regionCode: 'BR',
+        type: 'video',
+        maxResults: '10',
+        key: this.apiKey,
+      });
+
+      const url = `${this.videosBaseUrl}?${params.toString()}`;
 
       https
         .get(url, (res) => {
