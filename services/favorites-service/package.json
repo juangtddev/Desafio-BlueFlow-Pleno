@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start:dev": "tsx watch src/index.ts",
+    "test:setup": "prisma migrate deploy",
     "build": "tsc",
-    "test": "jest",
+    "test": "dotenv -e .env.test -- prisma migrate deploy && jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
   },
@@ -21,7 +22,13 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^6.0.3",
+    "dotenv-cli": "^10.0.0",
+    "jest": "^30.2.0",
     "prisma": "^6.17.1",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.5",
     "tsx": "^4.20.6"
   }
 }
