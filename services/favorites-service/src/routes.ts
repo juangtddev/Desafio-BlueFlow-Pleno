@@ -1,6 +1,3 @@
-// services/favorites-service/src/routes.ts
-// Este arquivo define todos os endpoints da API para o serviço de favoritos.
-
 import { Express } from 'express';
 import { prisma } from './lib/prisma';
 import { Prisma } from '@prisma/client';
@@ -43,11 +40,9 @@ export function setupRoutes(app: Express) {
         typeof userId !== 'number' ||
         typeof videoId !== 'string'
       ) {
-        return res
-          .status(400)
-          .json({
-            message: 'userId (number) and videoId (string) are required',
-          });
+        return res.status(400).json({
+          message: 'userId (number) and videoId (string) are required',
+        });
       }
 
       const newFavorite = await prisma.favorite.create({
@@ -60,11 +55,9 @@ export function setupRoutes(app: Express) {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        return res
-          .status(409)
-          .json({
-            message: 'This video has already been favorited by this user',
-          });
+        return res.status(409).json({
+          message: 'This video has already been favorited by this user',
+        });
       }
       console.error(error);
       return res.status(500).json({ message: 'Internal server error' });
@@ -85,11 +78,9 @@ export function setupRoutes(app: Express) {
         typeof userId !== 'number' ||
         typeof videoId !== 'string'
       ) {
-        return res
-          .status(400)
-          .json({
-            message: 'userId (number) and videoId (string) are required',
-          });
+        return res.status(400).json({
+          message: 'userId (number) and videoId (string) are required',
+        });
       }
 
       await prisma.favorite.delete({
