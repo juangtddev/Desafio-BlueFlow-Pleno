@@ -1,13 +1,59 @@
 import { Express, Request, Response } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { authMiddleware } from './middlewares/auth';
-import { ClientRequest } from 'http';
+import { ClientRequest, IncomingMessage } from 'http';
+import { FavoritesServiceClient } from './lib/FavoritesServiceClient';
 
-/**
- * Função helper que é executada antes de uma requisição ser enviada ao serviço de destino.
- */
+const favoritesClient = new FavoritesServiceClient();
+
 const onProxyReq = (proxyReq: ClientRequest, req: Request, _res: Response) => {
   fixRequestBody(proxyReq, req);
+};
+
+const onProxyRes = async (
+  proxyRes: IncomingMessage,
+  req: Request,
+  res: Response,
+) => {
+  if (
+    proxyRes.statusCode === 200 &&
+    (req.path.startsWith('/search') || req.path.startsWith('/list'))
+  ) {
+    const userId = req.user?.id;
+    if (!userId) {
+      proxyRes.pipe(res);
+      return;
+    }
+
+    let body = '';
+    proxyRes.on('data', (chunk) => {
+      body += chunk;
+    });
+    proxyRes.on('end', async () => {
+      try {
+        const videos = JSON.parse(body);
+        const userFavorites = await favoritesClient.getFavoritesByUserId(
+          userId,
+        );
+        const favoritedVideoIds = new Set(
+          userFavorites.map((fav) => fav.videoId),
+        );
+
+        const enrichedVideos = videos.map((video) => ({
+          ...video,
+          isFavorited: favoritedVideoIds.has(video.id?.videoId || video.id),
+        }));
+
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(enrichedVideos));
+      } catch (error) {
+        console.error('Error enriching video data:', error);
+        res.status(500).json({ message: 'Error processing video data' });
+      }
+    });
+  } else {
+    proxyRes.pipe(res);
+  }
 };
 
 export function setupRoutes(app: Express) {
@@ -27,7 +73,7 @@ export function setupRoutes(app: Express) {
   );
 
   /**
-   * Rota Protegida para Vídeos
+   * Rota Protegida para Vídeos (com enriquecimento de dados)
    */
   app.use(
     '/videos',
@@ -38,7 +84,10 @@ export function setupRoutes(app: Express) {
       pathRewrite: { '^/videos': '' },
       on: {
         proxyReq: onProxyReq,
+        proxyRes: onProxyRes,
       },
+
+      selfHandleResponse: true,
     }),
   );
 
