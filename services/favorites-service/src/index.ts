@@ -65,6 +65,44 @@ app.post('/favorites', async (req, res) => {
   }
 });
 
+app.delete('/favorites', async (req, res) => {
+  try {
+    const { userId, videoId } = req.body;
+
+    if (
+      !userId ||
+      !videoId ||
+      typeof userId !== 'number' ||
+      typeof videoId !== 'string'
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'userId (number) and videoId (string) are required' });
+    }
+
+    await prisma.favorite.delete({
+      where: {
+        userId_videoId: {
+          userId,
+          videoId,
+        },
+      },
+    });
+
+    return res.status(204).send();
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025'
+    ) {
+      return res.status(404).json({ message: 'Favorite record not found' });
+    }
+
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
   console.log(`Favorites-service running on port ${PORT}`);
