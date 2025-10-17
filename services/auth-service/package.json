@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test:setup": "prisma migrate deploy",
     "start:dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "test": "jest",
+    "test": "dotenv -e .env.test -- prisma migrate deploy && jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
   },
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "dotenv-cli": "^10.0.0",
     "prisma": "^6.17.1",
     "tsx": "^4.20.6"
   }
