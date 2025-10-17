@@ -31,3 +31,38 @@ export function generateToken(userId: number): string {
 
   return `${signatureInput}.${signature}`;
 }
+
+export function verifyToken(token: string): { sub: number } | null {
+  try {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined in enviromenment variables.');
+    }
+
+    const [encodedHeader, encodedPayload, signature] = token.split('.');
+    if (!encodedHeader || !encodedPayload || !signature) {
+      return null;
+    }
+
+    const signatureInput = `${encodedHeader}.${encodedPayload}`;
+    const expectedSignature = createHmac('sha256', secret)
+      .update(signatureInput)
+      .digest('base64url');
+
+    if (signature !== expectedSignature) {
+      return null;
+    }
+
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, 'base64url').toString('utf-8'),
+    );
+
+    if (payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+
+    return payload;
+  } catch (error) {
+    return null;
+  }
+}

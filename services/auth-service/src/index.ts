@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import { prisma } from './lib/prisma';
 import { hashPassword, verifyPassword } from './utils/hash';
-import { generateToken } from './utils/jwt';
+import { generateToken, verifyToken } from './utils/jwt';
 
 const app = express();
 
@@ -62,6 +62,35 @@ app.post('/login', async (req, res) => {
 
     const token = generateToken(user.id);
     return res.status(200).json({ token });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/validate-token', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: 'Token is required' });
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, createdAt: true },
+    });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: 'User associated with token not found' });
+    }
+
+    return res.status(200).json({ user });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
