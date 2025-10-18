@@ -1,6 +1,6 @@
 # Desafio BlueFlow
 
-Solução completa para o desafio BlueFlow, uma aplicação web de microsserviços para listar, pesquisar e favoritar vídeos do YouTube.
+Solução completa para o desafio BlueFlow, uma aplicação web de microsserviços para listar, pesquisar e favoritar vídeos do YouTube. Este projeto foi desenvolvido com foco em uma arquitetura robusta, testável e seguindo as melhores práticas da indústria.
 
 ---
 
@@ -15,27 +15,16 @@ O sistema é dividido em um frontend (cliente) e um backend composto por múltip
 - **Frontend:** Uma Single-Page Application (SPA) construída com JavaScript puro, responsável por toda a interface e interação do usuário.
 
 - **Backend (Microsserviços):**
-  - **API Gateway**: O único ponto de entrada para o cliente. É responsável por receber todas as requisições, validar a autenticação do usuário (consultando o `auth-service`) e rotear as chamadas para o microsserviço apropriado.
-  - **Auth Service**: Gerencia o ciclo de vida do usuário: registro, login e validação de tokens JWT.
+  - **API Gateway**: O único ponto de entrada para o cliente. É responsável por receber todas as requisições, validar a autenticação do usuário (consultando o `auth-service`), rotear as chamadas para o microsserviço apropriado e enriquecer os dados antes de retorná-los ao cliente.
+  - **Auth Service**: Gerencia o ciclo de vida do usuário: registro, login e validação de tokens JWT. Possui seu próprio schema e tabela `User`.
   - **Videos Service**: Atua como um proxy e adaptador para a API do YouTube, expondo endpoints para busca e listagem de vídeos.
-  - **Favorites Service**: Responsável por gerenciar o relacionamento entre usuários e vídeos favoritados.
+  - **Favorites Service**: Responsável por gerenciar o relacionamento entre usuários e vídeos favoritados. Possui seu próprio schema e tabela `Favorite`.
 
 ## Tecnologias Utilizadas
 
 - **Backend:** Node.js, TypeScript, Express.js, Prisma, PostgreSQL
 - **Frontend:** HTML5, CSS3, JavaScript (ES6+)
-- **DevOps & Geral:** Docker & Docker Compose, pnpm (Monorepo), Jest
-
-## Funcionalidades
-
-- Arquitetura de Microsserviços com comunicação interna.
-- Fluxo completo de autenticação e autorização com JWT.
-- Proteção de rotas que exigem um usuário logado.
-- Integração com a API do YouTube para listar vídeos populares e buscar por termos.
-- Funcionalidade completa para favoritar e desfavoritar vídeos.
-- Visualização da lista de vídeos favoritados pelo usuário.
-- Frontend reativo construído com JavaScript puro.
-- Testes unitários e de integração no backend.
+- **DevOps & Geral:** Docker & Docker Compose, pnpm (Monorepo), Jest, `http-proxy-middleware`
 
 ---
 
@@ -62,46 +51,17 @@ O sistema é dividido em um frontend (cliente) e um backend composto por múltip
     - Crie uma credencial do tipo **"API key"** e copie o valor.
 
 3.  **Configure as Variáveis de Ambiente:**
-    Crie os arquivos `.env` em cada um dos serviços de backend, copiando a partir dos arquivos `.env.example`.
-
-    - **`services/auth-service/.env`**:
-
-      ```
-      DATABASE_URL="postgresql://docker:docker@localhost:5432/blueflow_db?schema=public"
-      JWT_SECRET=sua-chave-secreta-aleatoria
-      PORT=3001
-      ```
-
-    - **`services/videos-service/.env`**:
-
-      ```
-      YOUTUBE_API_KEY=SUA_CHAVE_DA_API_DO_YOUTUBE_AQUI
-      PORT=3002
-      ```
-
-    - **`services/favorites-service/.env`**:
-
-      ```
-      DATABASE_URL="postgresql://docker:docker@localhost:5432/blueflow_db?schema=public"
-      PORT=3003
-      ```
-
-    - **`services/api-gateway/.env`**:
-      ```
-      PORT=3000
-      AUTH_SERVICE_URL=http://localhost:3001
-      VIDEOS_SERVICE_URL=http://localhost:3002
-      FAVORITES_SERVICE_URL=http://localhost:3003
-      ```
+    Crie os arquivos `.env` em cada um dos serviços de backend, copiando a partir dos arquivos `.env.example`. Preencha os valores, especialmente a `YOUTUBE_API_KEY` e uma `JWT_SECRET` segura.
 
 4.  **Instale as dependências:**
-    Na raiz do projeto, execute:
+    Na raiz do projeto, execute o comando que instala todas as dependências do monorepo e executa os scripts de build necessários do Prisma (graças à configuração no `package.json` da raiz).
 
     ```bash
     pnpm install
     ```
 
 5.  **Aplique as Migrações do Banco de Dados:**
+    Como cada serviço gerencia seu próprio schema, precisamos rodar as migrações para cada um deles.
 
     ```bash
     # Cria a tabela User
@@ -120,6 +80,7 @@ O sistema é dividido em um frontend (cliente) e um backend composto por múltip
     ```
 
 2.  **Inicie todos os serviços de Backend:**
+    Este comando iniciará todos os microsserviços em paralelo.
 
     ```bash
     pnpm --filter "@blueflow/*" --parallel start:dev
@@ -132,17 +93,30 @@ O sistema é dividido em um frontend (cliente) e um backend composto por múltip
 
 ---
 
-## Como Executar os Testes
+## Decisões de Arquitetura & Rationale
 
-Para executar os testes de cada serviço individualmente, use os seguintes comandos a partir da raiz do projeto:
+Esta seção detalha as principais escolhas técnicas e de design feitas durante o desenvolvimento, refletindo o histórico de decisões do projeto.
 
-```bash
-# Rodar testes do Auth Service
-pnpm --filter "@blueflow/auth-service" test
+- **Monorepo com `pnpm` Workspaces:** A escolha por um monorepo foi feita para centralizar a gestão de código e dependências. O `pnpm` foi selecionado sobre `npm`/`yarn` por sua eficiência no uso de disco (via links simbólicos) e sua estrutura de `node_modules` não-plana, que previne "phantom dependencies".
 
-# Rodar testes do Videos Service
-pnpm --filter "@blueflow/videos-service" test
+- **API Gateway como Fachada e Orquestrador:** O Gateway implementa dois padrões cruciais:
 
-# Rodar testes do Favorites Service
-pnpm --filter "@blueflow/favorites-service" test
-```
+  1.  **Facade/Proxy:** Ele é o único ponto de entrada, protegendo e escondendo a complexidade da rede interna de microsserviços.
+  2.  **Gateway Aggregation:** Na rota de listagem de vídeos, ele orquestra chamadas a dois serviços (`videos-service` e `favorites-service`) para enriquecer a resposta com o status `isFavorited`, simplificando a lógica do cliente.
+
+- **Gerenciamento de Schema com Prisma por Serviço:** A decisão inicial foi que cada serviço que necessita de persistência (`auth` e `favorites`) gerenciaria seu próprio `schema.prisma` e suas próprias migrações.
+
+  - **Trade-off:** Isso promove o isolamento e a autonomia de cada serviço. No entanto, como descoberto durante o desenvolvimento, isso introduz complexidades com o `PrismaClient` em um monorepo, exigindo uma configuração cuidadosa para que os scripts de build do Prisma sejam executados corretamente durante a instalação (`pnpm install`). A solução final envolveu configurar o `package.json` da raiz para permitir explicitamente os scripts de build do Prisma.
+
+- **Segurança: JWT Manual e Hashing:**
+
+  - **Trade-off (JWT):** Devido às restrições do desafio, a geração e validação de JWT foram implementadas manualmente com o módulo `crypto` nativo do Node.js. Em um projeto de produção, a escolha recairia sobre bibliotecas auditadas e robustas como `jsonwebtoken` para evitar vulnerabilidades de implementação.
+  - **Hashing:** Foi utilizado o algoritmo `scrypt` para hashing de senhas por sua alta resistência a ataques de força bruta. A verificação é feita com `timingSafeEqual` para mitigar "timing attacks".
+
+- **Isolamento de APIs Externas (Adapter Pattern):** A comunicação com a API do YouTube foi encapsulada em uma classe `YouTubeAdapter`. Isso isola o resto do `videos-service` dos detalhes de implementação da API externa, tornando o código mais limpo, fácil de manter e, crucialmente, permitindo "mockar" o adapter nos testes para execuções rápidas e determinísticas.
+
+- **Frontend "Vanilla" (JavaScript Puro):** A escolha de não usar um framework foi uma restrição do desafio.
+
+  - **Trade-off:** Isso proporciona controle total sobre a DOM e evita o overhead de um framework. Por outro lado, exige a implementação manual de gerenciamento de estado, renderização e manipulação de eventos, o que pode ser menos escalável em aplicações maiores.
+
+- **CORS e `http-proxy-middleware`:** A solução para os erros de CORS foi implementar um middleware customizado no API Gateway. Foi crucial aprender a lidar com as requisições "pre-flight" (`OPTIONS`) e a reescrever o corpo de requisições `POST`/`DELETE`, desafios comuns ao configurar um proxy reverso manualmente.
