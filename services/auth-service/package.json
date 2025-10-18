@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test:setup": "prisma migrate deploy",
-    "start:dev": "tsx watch src/index.ts",
+    "start:dev": "tsx src/index.ts",
     "build": "tsc",
     "test": "dotenv -e .env.test -- prisma migrate deploy && jest",
     "test:watch": "jest --watch",

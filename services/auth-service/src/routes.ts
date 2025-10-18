@@ -6,7 +6,6 @@ import { generateToken, verifyToken } from './utils/jwt';
 export function setupRoutes(app: Express) {
   app.post('/register', async (req, res) => {
     try {
-      console.log('Inspecting prisma object keys:', Object.keys(prisma));
       const { email, password } = req.body;
       if (!email || !password) {
         return res

@@ -3,22 +3,17 @@ import { prisma } from './lib/prisma';
 import { Prisma } from '@prisma/client';
 
 export function setupRoutes(app: Express) {
-  /**
-   * Rota para listar os favoritos de um usuário específico.
-   * GET /favorites/:userId
-   */
-  app.get('/favorites/:userId', async (req, res) => {
+  // DE: app.get('/favorites/:userId', ...)
+  // PARA:
+  app.get('/:userId', async (req, res) => {
     try {
       const userId = parseInt(req.params.userId, 10);
-
       if (isNaN(userId)) {
         return res.status(400).json({ message: 'User ID must be a number' });
       }
-
       const favorites = await prisma.favorite.findMany({
         where: { userId: userId },
       });
-
       return res.status(200).json(favorites);
     } catch (error) {
       console.error(error);
@@ -26,69 +21,63 @@ export function setupRoutes(app: Express) {
     }
   });
 
-  /**
-   * Rota para adicionar um novo vídeo aos favoritos de um usuário.
-   * POST /favorites
-   */
-  app.post('/favorites', async (req, res) => {
+  // DE: app.post('/favorites', ...)
+  // PARA:
+  app.post('/', async (req, res) => {
     try {
       const { userId, videoId } = req.body;
-
       if (
         !userId ||
         !videoId ||
         typeof userId !== 'number' ||
         typeof videoId !== 'string'
       ) {
-        return res.status(400).json({
-          message: 'userId (number) and videoId (string) are required',
-        });
+        return res
+          .status(400)
+          .json({
+            message: 'userId (number) and videoId (string) are required',
+          });
       }
-
       const newFavorite = await prisma.favorite.create({
         data: { userId, videoId },
       });
-
       return res.status(201).json(newFavorite);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        return res.status(409).json({
-          message: 'This video has already been favorited by this user',
-        });
+        return res
+          .status(409)
+          .json({
+            message: 'This video has already been favorited by this user',
+          });
       }
       console.error(error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   });
 
-  /**
-   * Rota para remover um vídeo dos favoritos de um usuário.
-   * DELETE /favorites
-   */
-  app.delete('/favorites', async (req, res) => {
+  // DE: app.delete('/favorites', ...)
+  // PARA:
+  app.delete('/', async (req, res) => {
     try {
       const { userId, videoId } = req.body;
-
       if (
         !userId ||
         !videoId ||
         typeof userId !== 'number' ||
         typeof videoId !== 'string'
       ) {
-        return res.status(400).json({
-          message: 'userId (number) and videoId (string) are required',
-        });
+        return res
+          .status(400)
+          .json({
+            message: 'userId (number) and videoId (string) are required',
+          });
       }
-
       await prisma.favorite.delete({
-        where: {
-          userId_videoId: { userId, videoId },
-        },
+        where: { userId_videoId: { userId, videoId } },
       });
-
       return res.status(204).send();
     } catch (error) {
       if (

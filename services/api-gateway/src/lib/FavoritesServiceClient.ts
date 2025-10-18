@@ -1,3 +1,4 @@
+// services/api-gateway/src/lib/FavoritesServiceClient.ts
 import http from 'http';
 
 interface Favorite {
@@ -19,7 +20,9 @@ export class FavoritesServiceClient {
 
   public async getFavoritesByUserId(userId: number): Promise<Favorite[]> {
     return new Promise((resolve, reject) => {
-      const url = `${this.favoritesServiceUrl}/favorites/${userId}`;
+      // A CORREÇÃO ESTÁ AQUI 👇
+      const url = `${this.favoritesServiceUrl}/${userId}`;
+
       http
         .get(url, (res) => {
           if (res.statusCode !== 200) {

@@ -34,6 +34,19 @@ app.get('/list', async (_req, res) => {
       .status(500)
       .json({ message: 'Failed to fetch popular videos from YouTube' });
   }
+  app.post('/details', async (req, res) => {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids)) {
+      return res.status(400).json({ message: 'Array of "ids" is required' });
+    }
+    try {
+      const videos = await youtube.getVideosByIds(ids);
+      return res.status(200).json(videos);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Failed to fetch video details' });
+    }
+  });
 });
 
 const PORT = process.env.PORT || 3002;

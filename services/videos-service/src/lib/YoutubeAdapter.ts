@@ -99,4 +99,32 @@ export class YouTubeAdapter {
         });
     });
   }
+  public getVideosByIds(ids: string[]): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const params = new URLSearchParams({
+        part: 'snippet',
+        id: ids.join(','), // A API do YouTube aceita IDs separados por vírgula
+        key: this.apiKey,
+      });
+      const url = `https://www.googleapis.com/youtube/v3/videos?${params.toString()}`;
+      // ... (a lógica https.get é idêntica à dos outros métodos, apenas adaptando o resolve)
+      https
+        .get(url, (res) => {
+          let data = '';
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
+          res.on('end', () => {
+            try {
+              const p = JSON.parse(data);
+              if (p.error) return reject(new Error(p.error.message));
+              resolve(p.items);
+            } catch (e) {
+              reject(e);
+            }
+          });
+        })
+        .on('error', reject);
+    });
+  }
 }
