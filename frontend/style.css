@@ -12,21 +12,25 @@ body {
   color: #1c1e21;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Alinhamento ao topo, para permitir scroll em telas maiores */
   min-height: 100vh;
+  padding: 20px; /* Adiciona padding para telas pequenas não colarem na borda */
 }
 
 /* Container principal */
 .container {
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px; /* Aumentado para acomodar a lista de vídeos */
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 50px; /* Espaço para o container não ficar colado no topo */
 }
 
 #auth-view {
   padding: 20px;
+  max-width: 450px; /* Limita a largura da tela de autenticação */
+  margin: 0 auto;
 }
 
 /* Utilitário para esconder elementos */
@@ -40,7 +44,7 @@ h2 {
   margin-bottom: 1rem;
 }
 
-/* --- NOVOS ESTILOS PARA ABAS --- */
+/* --- ESTILOS PARA ABAS (AUTENTICAÇÃO) --- */
 .tab-nav {
   display: flex;
   border-bottom: 1px solid #dddfe2;
@@ -57,6 +61,7 @@ h2 {
   color: #606770;
   border-bottom: 3px solid transparent;
   margin-bottom: -1px; /* Alinha com a borda do .tab-nav */
+  transition: all 0.2s;
 }
 
 .tab-button.active {
@@ -64,12 +69,11 @@ h2 {
   border-bottom-color: #1877f2;
 }
 
-.tab-button.active:hover {
-  color: #fff;
+.tab-button:hover:not(.active) {
+  background-color: #f0f2f5;
 }
-/* --- FIM DOS ESTILOS PARA ABAS --- */
 
-/* Estilos de formulário */
+/* Estilos de formulário (Autenticação) */
 .auth-form {
   display: none; /* Esconde todos os formulários por padrão */
   flex-direction: column;
@@ -102,34 +106,174 @@ button {
 
 button:hover {
   background-color: #166fe5;
-  color: #fff;
 }
 
-/* Cabeçalho da visão principal */
+/* Mensagem de erro (Auth e Geral) */
+.error-message {
+  color: #d93025;
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #fef2f2;
+}
+
+/* --- ESTILOS PARA A VISÃO PRINCIPAL (MAIN-VIEW) --- */
+
 #main-view {
   padding: 20px;
 }
 
+/* Cabeçalho da visão principal */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  gap: 20px; /* Espaço entre os elementos do header */
 }
 
 header h2 {
   margin: 0;
+  text-align: left;
+  white-space: nowrap; /* Evita que "Vídeos" quebre a linha */
 }
 
+/* Formulário de busca */
 header form {
   display: flex;
   gap: 10px;
+  flex-grow: 1; /* Ocupa o espaço disponível */
+  max-width: 600px;
   margin: 0;
 }
 
-/* Mensagem de erro */
-.error-message {
-  color: #d93025;
+#search-input {
+  flex-grow: 1;
+}
+
+/* Estilo do botão Sair */
+#logout-button {
+  background-color: #d93025; /* Cor de alerta/saída */
+  padding: 10px 15px;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+#logout-button:hover {
+  background-color: #c5291e;
+}
+
+/* Linha separadora (a tag <hr>) */
+hr {
+  border: 0;
+  border-top: 1px solid #dddfe2;
+  margin-bottom: 20px;
+}
+
+/* --- LISTAGEM DE VÍDEOS (RESULTADOS) --- */
+
+/* Container de listagem de vídeos */
+#video-list {
+  display: grid;
+  /* Cria colunas de tamanho flexível, com no mínimo 280px de largura */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px; /* Espaçamento entre os cards */
+  padding-top: 10px;
+}
+
+/* Estilo do cartão individual de vídeo */
+.video-card {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s, transform 0.2s;
+  cursor: pointer;
+}
+
+.video-card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Efeito de elevação ao passar o mouse */
+  transform: translateY(-2px);
+}
+
+/* Link para envolver a imagem */
+.video-card > a {
+  display: block;
+  line-height: 0;
+}
+
+/* Estilo da imagem/thumbnail */
+.video-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9; /* Garante que as imagens tenham o mesmo formato 16:9 */
+  object-fit: cover;
+  display: block;
+}
+
+/* Informações do vídeo (título e fonte) */
+.video-info {
+  padding: 15px;
+}
+
+/* Título do vídeo */
+.video-info h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+
+/* Link do título */
+.video-info h4 a {
+  color: #1c1e21;
+  text-decoration: none;
+  /* Limita o texto a duas linhas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-info h4 a:hover {
+  color: #1877f2;
+}
+
+/* Fonte do vídeo (ex: "YouTube") */
+.video-info .source {
+  font-size: 0.8rem;
+  color: #606770;
+  margin-top: 5px;
+}
+
+/* Estilo para "Nenhum vídeo encontrado" */
+.no-results {
+  grid-column: 1 / -1; /* Ocupa a largura total do grid */
   text-align: center;
-  margin-top: 15px;
+  color: #606770;
+  padding: 30px;
+  font-size: 1.1rem;
+}
+
+/* Media Query para telas menores (smartphones) */
+@media (max-width: 600px) {
+  .container {
+    margin-top: 10px;
+  }
+
+  #main-view header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  #main-view header h2 {
+    text-align: center;
+  }
+
+  #main-view header form {
+    max-width: none;
+  }
 }

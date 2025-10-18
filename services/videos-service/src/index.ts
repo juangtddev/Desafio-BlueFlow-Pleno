@@ -1,10 +1,14 @@
-// services/videos-service/src/index.ts
 import 'dotenv/config';
 import express from 'express';
 import { YouTubeAdapter } from './lib/YoutubeAdapter';
+import cors from 'cors';
 
 const app = express();
 const youtube = new YouTubeAdapter();
+
+// Configuração do CORS (Se o frontend acessar diretamente este serviço)
+const allowedOrigin = 'http://127.0.0.1:5500';
+app.use(cors({ origin: allowedOrigin }));
 
 app.get('/search', async (req, res) => {
   const query = req.query.q;
@@ -14,8 +18,9 @@ app.get('/search', async (req, res) => {
   }
 
   try {
+    // O Adapter agora retorna o array de objetos 'Video' mapeados
     const videos = await youtube.searchVideos(query);
-    return res.status(200).json(videos);
+    return res.status(200).json({ videos: videos });
   } catch (error) {
     console.error(error);
     return res
@@ -27,7 +32,7 @@ app.get('/search', async (req, res) => {
 app.get('/list', async (_req, res) => {
   try {
     const videos = await youtube.listPopularVideos();
-    return res.status(200).json(videos);
+    return res.status(200).json({ videos: videos });
   } catch (error) {
     console.error(error);
     return res
