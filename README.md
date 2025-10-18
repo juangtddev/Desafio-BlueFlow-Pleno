@@ -1,55 +1,148 @@
 # Desafio BlueFlow
 
-Crie uma aplicação **web** com proteção de acesso (**autenticação + autorização**) que **liste, pesquise e permita favoritar vídeos do YouTube** usando a **API oficial e gratuita do YouTube**.
-
-⚠️ **Regra importante**: Use **TypeScript** e **não utilize bibliotecas/frameworks além de**: **Express** e/ou **Nest** (ou similares no mesmo nível). Para testes, é **permitido** usar **Jest** (ou similares) e pode usar o DOTENV(ou similares).
-
-
-## 🎯 Objetivo
-Entregar um sistema **simples, funcional e bem estruturado**, com **frontend** e **backend** separados, construído em **microsserviços** (ex.: `auth-service`, `videos-service`, `favorites-service`).
+Solução completa para o desafio BlueFlow, uma aplicação web de microsserviços para listar, pesquisar e favoritar vídeos do YouTube.
 
 ---
 
-## 🏗️ Arquitetura (exigida)
-- Separar em **frontend** e **backend**.
-- **Microsserviços** no backend (ex.: serviço de **auth**, **vídeos**, **favoritos**).
-- Comunicação entre serviços.
-- Aplicar **POO** e **design patterns** adequados (**Factory**, **Strategy**, **Adapter**, etc.).
-- Testes automatizados com Jest ou similares.
+## Descrição do Projeto
+
+BlueFlow é uma aplicação web que utiliza a API oficial do YouTube para permitir que usuários se cadastrem, façam login, pesquisem por vídeos e gerenciem uma lista pessoal de favoritos. O projeto foi construído seguindo uma arquitetura de microsserviços, com o backend e o frontend completamente desacoplados.
+
+## Arquitetura
+
+O sistema é dividido em um frontend (cliente) e um backend composto por múltiplos serviços, orquestrados por um API Gateway.
+
+- **Frontend:** Uma Single-Page Application (SPA) construída com JavaScript puro, responsável por toda a interface e interação do usuário.
+
+- **Backend (Microsserviços):**
+  - **API Gateway**: O único ponto de entrada para o cliente. É responsável por receber todas as requisições, validar a autenticação do usuário (consultando o `auth-service`) e rotear as chamadas para o microsserviço apropriado.
+  - **Auth Service**: Gerencia o ciclo de vida do usuário: registro, login e validação de tokens JWT.
+  - **Videos Service**: Atua como um proxy e adaptador para a API do YouTube, expondo endpoints para busca e listagem de vídeos.
+  - **Favorites Service**: Responsável por gerenciar o relacionamento entre usuários e vídeos favoritados.
+
+## Tecnologias Utilizadas
+
+- **Backend:** Node.js, TypeScript, Express.js, Prisma, PostgreSQL
+- **Frontend:** HTML5, CSS3, JavaScript (ES6+)
+- **DevOps & Geral:** Docker & Docker Compose, pnpm (Monorepo), Jest
+
+## Funcionalidades
+
+- Arquitetura de Microsserviços com comunicação interna.
+- Fluxo completo de autenticação e autorização com JWT.
+- Proteção de rotas que exigem um usuário logado.
+- Integração com a API do YouTube para listar vídeos populares e buscar por termos.
+- Funcionalidade completa para favoritar e desfavoritar vídeos.
+- Visualização da lista de vídeos favoritados pelo usuário.
+- Frontend reativo construído com JavaScript puro.
+- Testes unitários e de integração no backend.
 
 ---
 
-## 🧰 Tecnologias Permitidas
-- **TypeScript** em todos os serviços.
-- **Express** e/ou **Nest** (ou similares no mesmo nível).
-- **Jest** (ou similares) para testes.
-- **DOTENV** (ou similares).
-- **Proibido**: adicionar outras **libs/frameworks** além dos citados acima.
+## Como Executar o Projeto
+
+### Pré-requisitos
+
+- Node.js (v18+)
+- pnpm
+- Docker e Docker Compose
+
+### Configuração do Ambiente
+
+1.  **Clone o repositório:**
+
+    ```bash
+    git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+    cd seu-repositorio
+    ```
+
+2.  **Obtenha uma Chave da API do YouTube:**
+
+    - Acesse o Google Cloud Console, crie um projeto e ative a **"YouTube Data API v3"**.
+    - Crie uma credencial do tipo **"API key"** e copie o valor.
+
+3.  **Configure as Variáveis de Ambiente:**
+    Crie os arquivos `.env` em cada um dos serviços de backend, copiando a partir dos arquivos `.env.example`.
+
+    - **`services/auth-service/.env`**:
+
+      ```
+      DATABASE_URL="postgresql://docker:docker@localhost:5432/blueflow_db?schema=public"
+      JWT_SECRET=sua-chave-secreta-aleatoria
+      PORT=3001
+      ```
+
+    - **`services/videos-service/.env`**:
+
+      ```
+      YOUTUBE_API_KEY=SUA_CHAVE_DA_API_DO_YOUTUBE_AQUI
+      PORT=3002
+      ```
+
+    - **`services/favorites-service/.env`**:
+
+      ```
+      DATABASE_URL="postgresql://docker:docker@localhost:5432/blueflow_db?schema=public"
+      PORT=3003
+      ```
+
+    - **`services/api-gateway/.env`**:
+      ```
+      PORT=3000
+      AUTH_SERVICE_URL=http://localhost:3001
+      VIDEOS_SERVICE_URL=http://localhost:3002
+      FAVORITES_SERVICE_URL=http://localhost:3003
+      ```
+
+4.  **Instale as dependências:**
+    Na raiz do projeto, execute:
+
+    ```bash
+    pnpm install
+    ```
+
+5.  **Aplique as Migrações do Banco de Dados:**
+
+    ```bash
+    # Cria a tabela User
+    pnpm --filter "@blueflow/auth-service" exec prisma migrate dev
+
+    # Cria a tabela Favorite
+    pnpm --filter "@blueflow/favorites-service" exec prisma migrate dev
+    ```
+
+### Executando a Aplicação
+
+1.  **Inicie o Banco de Dados (Docker):**
+
+    ```bash
+    docker-compose up -d
+    ```
+
+2.  **Inicie todos os serviços de Backend:**
+
+    ```bash
+    pnpm --filter "@blueflow/*" --parallel start:dev
+    ```
+
+3.  **Inicie o Frontend:**
+    - Use a extensão **"Live Server"** no Visual Studio Code.
+    - Navegue até a pasta `frontend/`.
+    - Clique com o botão direito no arquivo `index.html` e selecione "Open with Live Server".
 
 ---
 
-## ✅ Funcionalidades Mínimas
-- **Autenticação/Autorização**: fluxo de login e controle de acesso a rotas protegidas.
-- **Listagem/Pesquisa**: consumir a **API gratuita do YouTube** para listar e pesquisar vídeos.
-- **Favoritos**: marcar/desmarcar vídeos como favoritos **por usuário autenticado**.
-- **Persistência**: armazenar **favoritos** e **usuários** (banco à sua escolha; **preferência: PostgreSQL**).
+## Como Executar os Testes
 
----
+Para executar os testes de cada serviço individualmente, use os seguintes comandos a partir da raiz do projeto:
 
-## 🧪 O que será avaliado
-- **Qualidade do código**: organização, legibilidade, **testes básicos**.
-- **Arquitetura**: **isolamento** entre serviços, **contratos claros** e mensagens/erros compreensíveis.
-- **Boas práticas**: **SOLID**, tratamento de erros, logs, variáveis de ambiente.
-- **Segurança**: proteção de rotas, **armazenamento seguro** de credenciais/chaves.
-- **UX essencial**: interface **simples** e **funcional** no frontend.
+```bash
+# Rodar testes do Auth Service
+pnpm --filter "@blueflow/auth-service" test
 
----
+# Rodar testes do Videos Service
+pnpm --filter "@blueflow/videos-service" test
 
-## 💡 Dicas finais
-- Documente decisões técnicas e trade-offs.
-- Foque no essencial: faça o feijão com arroz.
-
-## Atenção!
-Para entrega, faça um **FORK** desse repositório e mande um Pull Request do seu desafio até às 23:59:59h do dia 16 de outubro de 2025 no fuso horário de Brasília.
-
-Prove seu valor e boa sorte!
+# Rodar testes do Favorites Service
+pnpm --filter "@blueflow/favorites-service" test
+```
